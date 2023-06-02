@@ -1,4 +1,4 @@
-package main
+package base
 
 import (
 	"fmt"
@@ -289,6 +289,66 @@ func main() {
 	for k, v := range m {
 		fmt.Println(k, "=>", v.name)
 	}
+
+	fmt.Println("-------------构造函数-------------")
+	// 调用构造函数
+	p9 := newPerson("pprof.cn", "测试", 90)
+	fmt.Printf("%#v\n", p9)
+
+	fmt.Println("-------------方法和接收者-------------")
+	p10 := newPerson("test", "hello", 25)
+	p10.Dream()
+
+	fmt.Println("-------------指针类型的接收者-------------")
+	// 指针类型的接收者由一个结构体的指针组成，由于指针的特性，
+	// 调用方法时修改接收者指针的任意成员变量，在方法结束后，修改都是有效的。这种方式就十分接近于其他语言中面向对象中的this或者self。
+	p11 := newPerson("测试", "12", 25)
+	fmt.Println(p11.age) // 25
+	p11.SetAge(30)
+	fmt.Println(p11.age) // 30
+
+	fmt.Println("-------------值类型的接收者-------------")
+	p12 := newPerson("测试", "hello", 25)
+	p12.Dream()
+	fmt.Println(p12.age) // 25
+	p12.SetAge2(30)      // (*p1).SetAge2(30)
+	fmt.Println(p12.age) // 25
+
+	fmt.Println("-------------任意类型添加方法-------------")
+	var m1 MyInt1
+	m1.SayHello() //Hello, 我是一个int。
+	m1 = 100
+	fmt.Printf("%#v  %T\n", m1, m1) //100  main.MyInt
+
+	fmt.Println("-------------结构体的匿名字段-------------")
+	p13 := Person2{
+		"pprof.cn",
+		18,
+	}
+	fmt.Printf("%#v\n", p1)          //main.Person{string:"pprof.cn", int:18}
+	fmt.Println(p13.string, p13.int) //pprof.cn 18
+
+	fmt.Println("-------------结构体的“继承”-------------")
+
+	d1 := &Dog{
+		Feet: 4,
+		Animal: &Animal{
+			name: "HELLO",
+		},
+	}
+	d1.wang()
+	d1.move()
+
+	fmt.Println("-------------结构体字段的可见性-------------")
+	// 结构体中字段大写开头表示可公开访问，小写表示私有（仅在定义当前结构体的包中可访问）。
+	toJson()
+}
+
+type MyInt1 int
+
+// SayHello 为MyInt添加一个SayHello的方法
+func (m MyInt1) SayHello() {
+	fmt.Println("Hello, 我是一个int。")
 }
 
 func printSlice(x []int) {
@@ -297,20 +357,71 @@ func printSlice(x []int) {
 
 // 定义结构体 类似java的类
 type Person struct {
-	phone    string
-	password string
+	name, phone string
+	password    string
 }
 
 // 同样类型的字段也可以写在一行
 type Person1 struct {
-	phone, password string
+	name, phone, password string
 }
 type person struct {
 	name string
 	city string
 	age  int8
 }
+
+func newPerson(name, city string, age int8) *person {
+	return &person{
+		name: name,
+		city: city,
+		age:  age,
+	}
+}
+
+// 方法和接收者
+
+func (p person) Dream() {
+	fmt.Printf("%s的梦想是学好Go语言！\n", p.name)
+}
+
+// SetAge 设置p的年龄
+// 使用指针接收者
+func (p *person) SetAge(newAge int8) {
+	p.age = newAge
+}
+
+// SetAge2 设置p的年龄
+// 使用值接收者
+func (p person) SetAge2(newAge int8) {
+	p.age = newAge
+}
+
 type student struct {
 	name string
 	age  int
+}
+
+// /Person 结构体Person类型
+type Person2 struct {
+	string
+	int
+}
+
+// Animal 动物
+type Animal struct {
+	name string
+}
+
+func (a *Animal) move() {
+	fmt.Printf("%s会动！\n", a.name)
+}
+
+type Dog struct {
+	Feet    int8
+	*Animal //通过嵌套匿名结构体实现继承
+}
+
+func (d *Dog) wang() {
+	fmt.Printf("%s会汪汪汪~\n", d.name)
 }
